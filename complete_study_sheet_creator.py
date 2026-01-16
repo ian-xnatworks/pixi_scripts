@@ -42,12 +42,16 @@ def download_experiment_data_as_json(xnat_url, session, experiment_id):
         print(f"Error downloading XML for {experiment_id}: {e}")
         return None
 
-def parse_pet_ct_data(experiment_json, experiment_id):
+def parse_pet_ct_data(experiment_json, experiment_id, experiment_filter):
     study_sheet_info = []
     
     try:
         data_fields = experiment_json['data_fields']
         study_name = data_fields['dcmPatientId']
+
+        if experiment_filter and experiment_filter not in study_name:
+            return []
+
         study_date = data_fields['date']
         tracer_name = data_fields['tracer/name']
         animal_weight = data_fields['dcmPatientWeight']
@@ -88,7 +92,7 @@ def parse_pet_ct_data(experiment_json, experiment_id):
     
     return study_sheet_info
 
-def extract_project_data(xnat_url, session, project_id, output_csv):
+def extract_project_data(xnat_url, session, project_id, output_csv, experiment_filter=None):
     print(f"Starting extraction for project: {project_id}")
     print("-" * 60)
     
@@ -105,7 +109,7 @@ def extract_project_data(xnat_url, session, project_id, output_csv):
         
         experiment_json = download_experiment_data_as_json(xnat_url, session, exp_id)
         if experiment_json:
-            scan_data = parse_pet_ct_data(experiment_json, exp_id)
+            scan_data = parse_pet_ct_data(experiment_json, exp_id, experiment_filter)
             all_scan_data.extend(scan_data)
     
     if all_scan_data:
@@ -130,6 +134,7 @@ def main():
     parser.add_argument('--password', required=True, help='XNAT password')
     parser.add_argument('--project', required=True, help='XNAT project ID')
     parser.add_argument('--output', required=True, help='Output CSV filename')
+    parser.add_argument('--filter', required=False, help='Input to customize what experiments are returned')
     args = parser.parse_args()
     
     xnat_url = args.url.rstrip('/')
@@ -137,8 +142,9 @@ def main():
     session = requests.Session()
     session.auth = (args.username, args.password)
     output_csv = args.output
+    experiment_filter = args.filter
 
-    extract_project_data(xnat_url, session, project_id, output_csv)
+    extract_project_data(xnat_url, session, project_id, output_csv, experiment_filter)
 
 if __name__ == '__main__':
     main()
