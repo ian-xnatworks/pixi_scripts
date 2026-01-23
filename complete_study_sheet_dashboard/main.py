@@ -64,6 +64,7 @@ class App:
 
         # Initialize UI
         self.init_options_sidebar()
+        self.init_main_section()
 
 
     def init_options_sidebar(self):
@@ -76,6 +77,122 @@ class App:
                 self.input_prefix = st.text_input("Experiment Prefix Filter", help='Experiment label must begin with this prefix to be included in study sheet.')
 
                 self.filter_splits = st.checkbox("Only Include Split Data", help='Set to true if you wish to only include split experiments.')
+
+            st.button("Create", on_click=self.extract_project_data)
+
+    def extract_element_from_json_if_present(self, input_json, element_name):
+        if element_name in input_json:
+            return input_json[element_name]
+        else:
+            return ''
+
+    def init_main_section(self):
+        self.main = st.container()
+
+        with self.main:
+            st.write("This is inside the container")
+    
+    def download_experiment_data_as_json(self, experiment_id):
+        url = f"{xnat_url}/data/experiments/{experiment_id}"
+        params = {'format': 'json'}
+        
+        try:
+            response = self._connection.get(url, params=params)
+            data = response.json()
+            if 'items' in data:
+                data_items = data['items'][0]
+                response.raise_for_status()
+                return data_items
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Error downloading XML for {experiment_id}: {e}")
+            return None
+
+    def parse_pet_ct_data(self, experiment_json, experiment_id, experiment_filter, remove_splits):
+        study_sheet_info = []
+        
+        try:
+            data_fields = experiment_json['data_fields']
+            study_name = data_fields['label']
+
+            if experiment_filter and experiment_filter not in study_name:
+                return []
+            if remove_splits and 'split' not in study_name.lower():
+                return []
+
+            study_date = extract_element_from_json_if_present(data_fields, 'date')
+            tracer_name = extract_element_from_json_if_present(data_fields, 'tracer/name')
+            animal_weight = extract_element_from_json_if_present(data_fields, 'dcmPatientWeight')
+            tracer_dose = extract_element_from_json_if_present(data_fields, 'tracer/dose')
+            tracer_units = extract_element_from_json_if_present(data_fields, 'tracer/dose/units')
+            injection_time = extract_element_from_json_if_present(data_fields, 'tracer/startTime')
+            scanner_model = extract_element_from_json_if_present(data_fields, 'scanner/model')
+                        
+            scans = experiment_json['children'][0]['items']
+            
+            for scan in scans:
+                scan_data_fields = scan['data_fields']
+
+                if 'modality' not in scan_data_fields:
+                    continue
+                
+                modality = scan_data_fields['modality'].lower()
+                if modality != 'pt' and modality != 'pet' and modality != 'ct':
+                    continue
+
+                if 'type' not in scan_data_fields:
+                    continue
+                scan_name = scan_data_fields['type']
+
+                scan_time = extract_element_from_json_if_present(scan_data_fields, 'startTime')
+
+                scan_info = {
+                    'Study Name': study_name,
+                    'Scan Name': scan_name,
+                    'Modality': modality,
+                    'Animal Weight': animal_weight,
+                    'Tracer': tracer_name,
+                    'Activity': '{} {}'.format(tracer_dose, tracer_units),
+                    'Study Date': study_date,
+                    'Scan Time': scan_time,
+                    'Injection Time': injection_time,
+                    'Scanner': scanner_model
+                }
+                study_sheet_info.append(scan_info)
+                        
+        except Exception as e:
+            print(f"Unexpected error processing {experiment_id}: {e}")
+        
+        return study_sheet_info
+
+    def extract_project_data(self):
+        experiment_filter = st.input_prefix
+        remove_splits = st.filter_splits
+        experiments = self._project.sessions.values():
+        
+        if not experiments:
+            print("No experiments found. Exiting.")
+            return
+        
+        all_scan_data = []
+        
+        for i, exp_id in enumerate(experiments, 1):
+            
+            experiment_json = download_experiment_data_as_json(exp_id)
+            if experiment_json:
+                scan_data = parse_pet_ct_data(experiment_json, exp_id, experiment_filter, remove_splits)
+                all_scan_data.extend(scan_data)
+        
+        if all_scan_data:
+            fieldnames = ['Study Name', 'Scan Name', 'Modality', 'Animal Weight', 'Tracer', 'Activity', 'Study Date', 'Scan Time', 'Injection Time', 'Scanner']
+            
+            # with open(output_csv, 'w', newline='', encoding='utf-8') as csvfile:
+            #     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            #     writer.writeheader()
+            #     writer.writerows(all_scan_data)
+            
+        else:
+            print("No PET/CT scan data found in project")
 
 
 app = App()
