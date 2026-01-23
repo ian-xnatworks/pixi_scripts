@@ -166,8 +166,8 @@ class App:
         return study_sheet_info
 
     def extract_project_data(self):
-        experiment_filter = st.input_prefix
-        remove_splits = st.filter_splits
+        experiment_filter = st.session_state.input_prefix
+        remove_splits = st.session_state.filter_splits
         experiments = self._project.sessions.values()
         
         if not experiments:
