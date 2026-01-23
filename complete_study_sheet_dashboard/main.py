@@ -168,7 +168,7 @@ class App:
     def extract_project_data(self):
         experiment_filter = st.input_prefix
         remove_splits = st.filter_splits
-        experiments = self._project.sessions.values():
+        experiments = self._project.sessions.values()
         
         if not experiments:
             print("No experiments found. Exiting.")
