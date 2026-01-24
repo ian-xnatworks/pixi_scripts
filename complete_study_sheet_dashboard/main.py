@@ -121,14 +121,6 @@ class App:
             with self.main:
                 st.write(data_fields)
 
-            study_date = extract_element_from_json_if_present(data_fields, 'date')
-            tracer_name = extract_element_from_json_if_present(data_fields, 'tracer/name')
-            animal_weight = extract_element_from_json_if_present(data_fields, 'dcmPatientWeight')
-            tracer_dose = extract_element_from_json_if_present(data_fields, 'tracer/dose')
-            tracer_units = extract_element_from_json_if_present(data_fields, 'tracer/dose/units')
-            injection_time = extract_element_from_json_if_present(data_fields, 'tracer/startTime')
-            scanner_model = extract_element_from_json_if_present(data_fields, 'scanner/model')
-            
             with self.main:
                 st.write(experiment_json['children'])
             with self.main:
@@ -137,6 +129,14 @@ class App:
 
             with self.main:
                 st.write(scans)
+
+            study_date = extract_element_from_json_if_present(data_fields, 'date')
+            tracer_name = extract_element_from_json_if_present(data_fields, 'tracer/name')
+            animal_weight = extract_element_from_json_if_present(data_fields, 'dcmPatientWeight')
+            tracer_dose = extract_element_from_json_if_present(data_fields, 'tracer/dose')
+            tracer_units = extract_element_from_json_if_present(data_fields, 'tracer/dose/units')
+            injection_time = extract_element_from_json_if_present(data_fields, 'tracer/startTime')
+            scanner_model = extract_element_from_json_if_present(data_fields, 'scanner/model')
             
             for scan in scans:
                 scan_data_fields = scan['data_fields']
@@ -169,7 +169,8 @@ class App:
                 study_sheet_info.append(scan_info)
                         
         except Exception as e:
-            print(f"Unexpected error processing {experiment_id}: {e}")
+            with self.main:
+                st.write(f"Unexpected error processing {experiment_id}: {e}")
         
         return study_sheet_info
 
