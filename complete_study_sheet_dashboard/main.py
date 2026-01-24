@@ -169,7 +169,6 @@ class App:
         return study_sheet_info
 
     def extract_project_data(self):
-        time.sleep(2.5)
         experiment_filter = self.input_prefix
         remove_splits = self.filter_splits
         experiments = self._project.experiments.values()
