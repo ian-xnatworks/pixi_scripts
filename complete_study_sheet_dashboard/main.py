@@ -189,7 +189,7 @@ class App:
         
         if all_scan_data:
             df = pd.DataFrame.from_dict(all_scan_data)
-            st.dataframe(df, height=600)            
+            # st.dataframe(df, height=600)            
         else:
             with self.main:
                 st.write(f"No PET/CT scan data found in project")
