@@ -78,7 +78,7 @@ class App:
 
                 self.filter_splits = st.checkbox("Only Include Split Data", help='Set to true if you wish to only include split experiments.')
 
-            st.button("Create", on_click=self.extract_project_data)
+            st.button("Create Sheet", on_click=self.extract_project_data)
 
     def extract_element_from_json_if_present(self, input_json, element_name):
         if element_name in input_json:
@@ -185,6 +185,8 @@ class App:
         if all_scan_data:
             fieldnames = ['Study Name', 'Scan Name', 'Modality', 'Animal Weight', 'Tracer', 'Activity', 'Study Date', 'Scan Time', 'Injection Time', 'Scanner']
             
+            with self.main:
+                st.write(all_scan_data)
             # with open(output_csv, 'w', newline='', encoding='utf-8') as csvfile:
             #     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             #     writer.writeheader()
