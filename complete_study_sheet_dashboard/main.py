@@ -91,7 +91,7 @@ class App:
         self.main = st.container()
 
         with self.main:
-            st.write("This is inside the container")
+            st.write("Please set your optional parameters then click 'Create Sheet.'")
     
     def download_experiment_data_as_json(self, experiment_id):
         url = f"/data/experiments/{experiment_id}?format=json"
@@ -184,19 +184,12 @@ class App:
             experiment_json = self.download_experiment_data_as_json(exp_id)
             if experiment_json:
                 scan_data = self.parse_pet_ct_data(experiment_json, exp_id, experiment_filter, remove_splits)
-                with self.main:
-                    st.write(scan_data)
                 all_scan_data.extend(scan_data)
         
         if all_scan_data:
-            fieldnames = ['Study Name', 'Scan Name', 'Modality', 'Animal Weight', 'Tracer', 'Activity', 'Study Date', 'Scan Time', 'Injection Time', 'Scanner']
+            st.main = st.empty()
             df = pd.DataFrame.from_dict(all_scan_data)
-            st.dataframe(df, height=600)
-            # with open(output_csv, 'w', newline='', encoding='utf-8') as csvfile:
-            #     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            #     writer.writeheader()
-            #     writer.writerows(all_scan_data)
-            
+            st.dataframe(df, height=600)            
         else:
             with self.main:
                 st.write(f"No PET/CT scan data found in project")
