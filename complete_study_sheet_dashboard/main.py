@@ -178,9 +178,9 @@ class App:
         
         for i, exp_id in enumerate(experiments, 1):
             
-            experiment_json = download_experiment_data_as_json(exp_id)
+            experiment_json = self.download_experiment_data_as_json(exp_id)
             if experiment_json:
-                scan_data = parse_pet_ct_data(experiment_json, exp_id, experiment_filter, remove_splits)
+                scan_data = self.parse_pet_ct_data(experiment_json, exp_id, experiment_filter, remove_splits)
                 all_scan_data.extend(scan_data)
         
         if all_scan_data:
