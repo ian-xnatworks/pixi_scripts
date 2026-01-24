@@ -71,7 +71,7 @@ class App:
         # Streamlit setup
         with st.sidebar:
             st.title("Complete Study Sheet Builder")
-            st.markdown("*Create a complete study sheet based on PET/CT data within XNAT.*")
+            st.markdown("*Create a complete study sheet based on PET/CT data within an XNAT project.*")
             
             with st.expander("Options", expanded=True):
                 self.input_prefix = st.text_input("Experiment Prefix Filter", help='Experiment label must begin with this prefix to be included in study sheet.')
@@ -166,8 +166,8 @@ class App:
         return study_sheet_info
 
     def extract_project_data(self):
-        experiment_filter = st.session_state.input_prefix
-        remove_splits = st.session_state.filter_splits
+        experiment_filter = self.input_prefix
+        remove_splits = self.filter_splits
         experiments = self._project.sessions.values()
         
         if not experiments:
