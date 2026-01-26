@@ -1,0 +1,48 @@
+[33m61dc79c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fixup History
+[33mc6b5b50[m[33m ([m[1;31morigin/remove-history-fix[m[33m, [m[1;32mremove-history-fix[m[33m)[m Final dashboard implementation.
+[33m283ab80[m Adding main logic.
+[33m7f0f639[m Jupyter dashboard version of complete study sheet
+[33m7f3e80e[m[33m ([m[1;31morigin/jupyter_creator[m[33m, [m[1;32mjupyter_creator[m[33m)[m Final dashboard implementation.
+[33m8e8acee[m testing.
+[33mdf592bd[m testing.
+[33m0a65e7d[m testing.
+[33mfb205f7[m testing.
+[33m7697b4a[m testing.
+[33m922428a[m testing.
+[33m76a63a5[m testing.
+[33m3e706a0[m testing.
+[33mcec8ede[m testing.
+[33m5535dd6[m testing.
+[33m7e325f7[m testing.
+[33m1e94ca7[m testing.
+[33m50080f2[m testing.
+[33m608dc54[m testing.
+[33mc3f28aa[m testing.
+[33me385b9a[m testing.
+[33mafafcb8[m testing.
+[33mdffd575[m testing.
+[33m5a4ecdd[m testing.
+[33maac4863[m testing.
+[33m6cf8618[m testing.
+[33mae21103[m testing.
+[33m7c15492[m Fixing experiment id.
+[33mae39b7d[m Fixing url format.
+[33m7bc1b59[m removing url call.
+[33m269ebac[m adding self
+[33mf9aba72[m Switching to experiments.
+[33mf746c8f[m Fixing sidebar elements.
+[33mac611fe[m Fixing session state issue.
+[33m3a4f35f[m Typo.
+[33m7b658b6[m Adding main logic.
+[33m28fd8dd[m typo.
+[33m8fc59da[m Fixing nomenclature.
+[33m427c19b[m Setting up basic UI.
+[33mf0cdad4[m Adding basic jupyter setup.
+[33m0db36a6[m Script cleanup.
+[33mdb7f913[m Adding option to only get split data.
+[33m3c7ab6f[m Adding checks for all fields so as not to fail when missing one.
+[33mc9a1c32[m Fixing dcm problems when inveon scanner is used.
+[33mad966fc[m First pass of fixes to make information obtaining more consistent.
+[33m8ac9b61[m Adding logic to filter experiments.
+[33m0a4a89e[m Creating gitignore.
+[33md01f06d[m Creating PIXI study sheet creator script.
