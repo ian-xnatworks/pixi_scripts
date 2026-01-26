@@ -112,12 +112,7 @@ class App:
             data_fields = experiment_json['data_fields']
             study_name = data_fields['label']
 
-            with self.main:
-                st.write(experiment_filter)
-
             if experiment_filter and experiment_filter not in study_name:
-                with self.main:
-                    st.write(experiment_id + " does not fit")
                 return []
             if remove_splits and 'split' not in study_name.lower():
                 return []
