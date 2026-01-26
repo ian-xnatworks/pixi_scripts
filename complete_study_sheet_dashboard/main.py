@@ -9,6 +9,7 @@ import requests
 import csv
 import argparse
 import json
+from datetime import datetime
 
 css='''
 <style>
@@ -65,7 +66,10 @@ class App:
 
         # Initialize UI
         self.init_options_sidebar()
-        self.init_main_section()        
+        self.init_main_section()
+
+    def disable(self):
+        st.session_state.datetimes_disabled = not st.session_state.filter_date
 
     def init_options_sidebar(self):
         # Streamlit setup
@@ -76,7 +80,13 @@ class App:
             with st.expander("Options", expanded=True):
                 st.text_input("Experiment Prefix Filter", help='Experiment label must begin with this prefix to be included in study sheet.', key= 'input_prefix')
 
-                self.filter_splits = st.checkbox("Only Include Split Data", help='Set to true if you wish to only include split experiments.')
+                st.checkbox("Only Include Split Data", help='Set to true if you wish to only include split experiments.', key= 'filter_splits')
+
+                st.checkbox("Filter Date", help='Set to true if you wish to filter scans based on their study date.', key= 'filter_date', on_change=self.disable)
+
+                st.date_input("Study date range start", datetime.today(), help='Beginning of date range to filter scans', key='study_date_range_start', disabled=st.session_state.get("datetimes_disabled", True))
+
+                st.date_input("Study date range end", datetime.today(), help='End of date range to filter scans', key='study_date_range_end', disabled=st.session_state.get("datetimes_disabled", True))
 
             st.button("Create Sheet", on_click=self.extract_project_data)
 
@@ -105,19 +115,27 @@ class App:
                 st.write(f"Error downloading XML for {experiment_id}: {e}")
             return None
 
-    def parse_pet_ct_data(self, experiment_json, experiment_id, experiment_filter, remove_splits):
+    def parse_pet_ct_data(self, experiment_json, experiment_id):
         study_sheet_info = []
         
         try:
             data_fields = experiment_json['data_fields']
             study_name = data_fields['label']
 
-            if experiment_filter and experiment_filter not in study_name:
+            if st.session_state.input_prefix and st.session_state.input_prefix not in study_name:
                 return []
-            if remove_splits and 'split' not in study_name.lower():
+            if st.session_state.filter_splits and 'split' not in study_name.lower():
                 return []
 
             study_date = self.extract_element_from_json_if_present(data_fields, 'date')
+
+            if st.session_state.filter_date:
+                start_date = st.session_state.study_date_range_start
+                end_date = st.session_state.study_date_range_end
+                study_date_datetime = datetime.strptime(study_date, '%Y-%m-%d').date()
+                if start_date > study_date_datetime or end_date < study_date_datetime:
+                    return []
+            
             tracer_name = self.extract_element_from_json_if_present(data_fields, 'tracer/name')
             animal_weight = self.extract_element_from_json_if_present(data_fields, 'dcmPatientWeight')
             tracer_dose = self.extract_element_from_json_if_present(data_fields, 'tracer/dose')
@@ -164,8 +182,6 @@ class App:
         return study_sheet_info
 
     def extract_project_data(self):
-        experiment_filter = st.session_state.input_prefix
-        remove_splits = self.filter_splits
         experiments = self._project.experiments.values()
         
         if not experiments:
@@ -179,7 +195,7 @@ class App:
             exp_id = experiment.id
             experiment_json = self.download_experiment_data_as_json(exp_id)
             if experiment_json:
-                scan_data = self.parse_pet_ct_data(experiment_json, exp_id, experiment_filter, remove_splits)
+                scan_data = self.parse_pet_ct_data(experiment_json, exp_id)
                 all_scan_data.extend(scan_data)
         
         if all_scan_data:
