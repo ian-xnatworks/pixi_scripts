@@ -35,9 +35,6 @@ class App:
         else:
             raise Exception('Must be started from an XNAT project.')
 
-        url = "/xapi/siteConfig/uiDateFormat"
-        self.date_format = self._connection.get(url).text
-
         self.init_session_state()
         self.init_ui()
 
@@ -135,7 +132,7 @@ class App:
             if st.session_state.filter_date:
                 start_date = st.session_state.study_date_range_start
                 end_date = st.session_state.study_date_range_end
-                study_date_datetime = datetime.strptime(study_date, self.date_format).date()
+                study_date_datetime = datetime.strptime(study_date, '%Y-%m-%d').date()
                 if start_date > study_date_datetime or end_date < study_date_datetime:
                     return []
             
