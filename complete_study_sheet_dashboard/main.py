@@ -83,9 +83,9 @@ class App:
 
                 if st.session_state.get("filter_date", False):
                     st.session_state.datetimes_disabled = False
-                elif st.session_state.get("filter_date", True)
+                elif st.session_state.get("filter_date", True):
                     st.session_state.datetimes_disabled = True
-                
+
                 st.date_input("Study date range start", datetime.today(), help='Beginning of date range to filter scans', key='study_date_range_start', disabled=st.session_state.get("datetimes_disabled", True))
 
                 st.date_input("Study date range end", datetime.today(), help='End of date range to filter scans', key='study_date_range_end', disabled=st.session_state.get("datetimes_disabled", True))
