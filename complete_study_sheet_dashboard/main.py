@@ -132,7 +132,9 @@ class App:
             if st.session_state.filter_date:
                 start_date = st.session_state.study_date_range_start
                 end_date = st.session_state.study_date_range_end
-                study_date_datetime = datetime.strptime(study_date, '%Y-%m-%d').date()
+                url = "xapi/siteConfig/uiDateFormat"
+                date_format = self._connection.get(url)
+                study_date_datetime = datetime.strptime(study_date, date_format).date()
                 if start_date > study_date_datetime or end_date < study_date_datetime:
                     return []
             
