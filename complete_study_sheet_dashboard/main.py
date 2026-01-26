@@ -85,7 +85,7 @@ class App:
                 st.session_state.datetimes_disabled = True
                 st.checkbox("Filter Date", help='Set to true if you wish to filter scans based on their study date.', key= 'filter_date', on_change=self.enable_date_inputs)
 
-                st.date_input("Study date range start", datetime.today(), help='Beginning of date range to filter scans', key='study_date_range_start', disabled=streamlit.session_state.datetimes_disabled)
+                st.date_input("Study date range start", datetime.today(), help='Beginning of date range to filter scans', key='study_date_range_start', disabled=st.session_state.datetimes_disabled)
 
                 st.date_input("Study date range end", datetime.today(), help='End of date range to filter scans', key='study_date_range_end', disabled=True)
 
