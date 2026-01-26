@@ -3,6 +3,7 @@ PIXI complete study sheet creator
 """
 import os
 import streamlit as st
+import pandas as pd
 import xnat
 import requests
 import csv
@@ -64,21 +65,20 @@ class App:
 
         # Initialize UI
         self.init_options_sidebar()
-        self.init_main_section()
-
+        self.init_main_section()        
 
     def init_options_sidebar(self):
         # Streamlit setup
         with st.sidebar:
             st.title("Complete Study Sheet Builder")
-            st.markdown("*Create a complete study sheet based on PET/CT data within XNAT.*")
+            st.markdown("*Create a complete study sheet based on PET/CT data within an XNAT project.*")
             
             with st.expander("Options", expanded=True):
-                self.input_prefix = st.text_input("Experiment Prefix Filter", help='Experiment label must begin with this prefix to be included in study sheet.')
+                st.text_input("Experiment Prefix Filter", help='Experiment label must begin with this prefix to be included in study sheet.', key= 'input_prefix')
 
                 self.filter_splits = st.checkbox("Only Include Split Data", help='Set to true if you wish to only include split experiments.')
 
-            st.button("Create", on_click=self.extract_project_data)
+            st.button("Create Sheet", on_click=self.extract_project_data)
 
     def extract_element_from_json_if_present(self, input_json, element_name):
         if element_name in input_json:
@@ -88,16 +88,12 @@ class App:
 
     def init_main_section(self):
         self.main = st.container()
-
-        with self.main:
-            st.write("This is inside the container")
     
     def download_experiment_data_as_json(self, experiment_id):
-        url = f"{xnat_url}/data/experiments/{experiment_id}"
-        params = {'format': 'json'}
+        url = f"/data/experiments/{experiment_id}?format=json"
         
         try:
-            response = self._connection.get(url, params=params)
+            response = self._connection.get(url)
             data = response.json()
             if 'items' in data:
                 data_items = data['items'][0]
@@ -105,7 +101,8 @@ class App:
                 return data_items
             
         except requests.exceptions.RequestException as e:
-            print(f"Error downloading XML for {experiment_id}: {e}")
+            with self.main:
+                st.write(f"Error downloading XML for {experiment_id}: {e}")
             return None
 
     def parse_pet_ct_data(self, experiment_json, experiment_id, experiment_filter, remove_splits):
@@ -120,16 +117,16 @@ class App:
             if remove_splits and 'split' not in study_name.lower():
                 return []
 
-            study_date = extract_element_from_json_if_present(data_fields, 'date')
-            tracer_name = extract_element_from_json_if_present(data_fields, 'tracer/name')
-            animal_weight = extract_element_from_json_if_present(data_fields, 'dcmPatientWeight')
-            tracer_dose = extract_element_from_json_if_present(data_fields, 'tracer/dose')
-            tracer_units = extract_element_from_json_if_present(data_fields, 'tracer/dose/units')
-            injection_time = extract_element_from_json_if_present(data_fields, 'tracer/startTime')
-            scanner_model = extract_element_from_json_if_present(data_fields, 'scanner/model')
-                        
-            scans = experiment_json['children'][0]['items']
+            study_date = self.extract_element_from_json_if_present(data_fields, 'date')
+            tracer_name = self.extract_element_from_json_if_present(data_fields, 'tracer/name')
+            animal_weight = self.extract_element_from_json_if_present(data_fields, 'dcmPatientWeight')
+            tracer_dose = self.extract_element_from_json_if_present(data_fields, 'tracer/dose')
+            tracer_units = self.extract_element_from_json_if_present(data_fields, 'tracer/dose/units')
+            injection_time = self.extract_element_from_json_if_present(data_fields, 'tracer/startTime')
+            scanner_model = self.extract_element_from_json_if_present(data_fields, 'scanner/model')
             
+            scans = experiment_json['children'][0]['items']
+
             for scan in scans:
                 scan_data_fields = scan['data_fields']
 
@@ -144,7 +141,7 @@ class App:
                     continue
                 scan_name = scan_data_fields['type']
 
-                scan_time = extract_element_from_json_if_present(scan_data_fields, 'startTime')
+                scan_time = self.extract_element_from_json_if_present(scan_data_fields, 'startTime')
 
                 scan_info = {
                     'Study Name': study_name,
@@ -161,38 +158,35 @@ class App:
                 study_sheet_info.append(scan_info)
                         
         except Exception as e:
-            print(f"Unexpected error processing {experiment_id}: {e}")
+            with self.main:
+                st.write(f"Unexpected error processing {experiment_id}: {e}")
         
         return study_sheet_info
 
     def extract_project_data(self):
-        experiment_filter = st.input_prefix
-        remove_splits = st.filter_splits
-        experiments = self._project.sessions.values()
+        experiment_filter = st.session_state.input_prefix
+        remove_splits = self.filter_splits
+        experiments = self._project.experiments.values()
         
         if not experiments:
-            print("No experiments found. Exiting.")
+            with self.main:
+                st.write(f"No experiments found. Exiting.")
             return
         
         all_scan_data = []
         
-        for i, exp_id in enumerate(experiments, 1):
-            
-            experiment_json = download_experiment_data_as_json(exp_id)
+        for i, experiment in enumerate(experiments, 1):
+            exp_id = experiment.id
+            experiment_json = self.download_experiment_data_as_json(exp_id)
             if experiment_json:
-                scan_data = parse_pet_ct_data(experiment_json, exp_id, experiment_filter, remove_splits)
+                scan_data = self.parse_pet_ct_data(experiment_json, exp_id, experiment_filter, remove_splits)
                 all_scan_data.extend(scan_data)
         
         if all_scan_data:
-            fieldnames = ['Study Name', 'Scan Name', 'Modality', 'Animal Weight', 'Tracer', 'Activity', 'Study Date', 'Scan Time', 'Injection Time', 'Scanner']
-            
-            # with open(output_csv, 'w', newline='', encoding='utf-8') as csvfile:
-            #     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            #     writer.writeheader()
-            #     writer.writerows(all_scan_data)
-            
+            df = pd.DataFrame.from_dict(all_scan_data)
+            st.dataframe(df, height=600)            
         else:
-            print("No PET/CT scan data found in project")
-
+            with self.main:
+                st.write(f"No PET/CT scan data found within the project with the given requirements.")
 
 app = App()
