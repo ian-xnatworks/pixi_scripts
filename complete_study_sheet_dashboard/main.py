@@ -65,8 +65,8 @@ class App:
         """, unsafe_allow_html=True)
 
         # Initialize UI
-        self.init_options_sidebar()
         self.init_main_section()
+        self.init_options_sidebar()
 
     def init_options_sidebar(self):
         # Streamlit setup
