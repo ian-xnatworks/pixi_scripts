@@ -154,6 +154,8 @@ class App:
                     modality = 'PET'
 
                 if st.session_state.filter_modality:
+                    with self.main:
+                        st.write(st.session_state.filter_modality)
                     if modality != st.session_state.filter_modality:
                         continue
 
@@ -169,7 +171,7 @@ class App:
                     'Modality': modality,
                     'Animal Weight': animal_weight,
                     'Tracer': tracer_name,
-                    'Activity': '{} {}'.format(tracer_dose, tracer_units),
+                    'Injected Dose': '{} {}'.format(tracer_dose, tracer_units),
                     'Study Date': study_date,
                     'Scan Time': scan_time,
                     'Injection Time': injection_time,
