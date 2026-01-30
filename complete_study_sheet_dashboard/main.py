@@ -154,9 +154,7 @@ class App:
                     modality = 'PET'
 
                 if st.session_state.filter_modality:
-                    with self.main:
-                        st.write(st.session_state.filter_modality)
-                    if modality != st.session_state.filter_modality:
+                    if modality not in st.session_state.filter_modality:
                         continue
 
                 if 'type' not in scan_data_fields:
